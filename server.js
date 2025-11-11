@@ -1,5 +1,26 @@
 // 加载环境变量配置
-require('dotenv').config({ path: '.env.local' });
+try {
+    require('dotenv').config({ path: '.env.local' });
+} catch (e) {
+    // 如果dotenv不存在，手动加载.env.local文件
+    const fs = require('fs');
+    const path = require('path');
+    try {
+        const envPath = path.join(__dirname, '.env.local');
+        const envContent = fs.readFileSync(envPath, 'utf8');
+        envContent.split('\n').forEach(line => {
+            line = line.trim();
+            if (line && !line.startsWith('#')) {
+                const [key, ...valueParts] = line.split('=');
+                if (key) {
+                    process.env[key.trim()] = valueParts.join('=').trim();
+                }
+            }
+        });
+    } catch (err) {
+        console.warn('无法加载.env.local文件:', err.message);
+    }
+}
 
 const express = require('express');
 const puppeteer = require('puppeteer');
@@ -17,7 +38,9 @@ app.use(express.static('.'));
 
 // 邮件配置（从环境变量读取）
 const EMAIL_CONFIG = {
-    service: process.env.EMAIL_SERVICE || '163',
+    host: 'smtp.163.com',
+    port: 465,
+    secure: true, // 使用 SSL
     auth: {
         user: process.env.EMAIL_USER || 'shibinrun@163.com',
         pass: process.env.EMAIL_PASSWORD
