@@ -23,10 +23,26 @@ try {
 }
 
 const express = require('express');
-const puppeteer = require('puppeteer');
 const nodemailer = require('nodemailer');
 const cors = require('cors');
 const path = require('path');
+
+// 根据环境选择合适的 puppeteer
+let puppeteer;
+let chromium;
+
+if (process.env.VERCEL) {
+    // Vercel 环境使用 puppeteer-core 和 @sparticuz/chromium
+    puppeteer = require('puppeteer-core');
+    chromium = require('@sparticuz/chromium');
+} else {
+    // 本地环境使用常规 puppeteer
+    try {
+        puppeteer = require('puppeteer');
+    } catch (e) {
+        puppeteer = require('puppeteer-core');
+    }
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -60,17 +76,31 @@ app.post('/generate-pdf', async (req, res) => {
         console.log(`开始处理URL: ${url}`);
 
         // 启动浏览器
-        browser = await puppeteer.launch({
+        const launchOptions = {
             headless: 'new',
-            executablePath: process.env.CHROME_PATH || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-dev-shm-usage',
                 '--disable-accelerated-2d-canvas',
-                '--disable-gpu'
+                '--disable-gpu',
+                '--single-process',
+                '--no-zygote'
             ]
-        });
+        };
+
+        // 根据环境设置 executablePath
+        if (process.env.VERCEL) {
+            // Vercel 环境使用 chromium
+            launchOptions.executablePath = await chromium.executablePath();
+            launchOptions.args = chromium.args;
+        } else if (process.env.CHROME_PATH) {
+            // 使用环境变量指定的 Chrome 路径
+            launchOptions.executablePath = process.env.CHROME_PATH;
+        }
+        // 本地环境如果安装了 puppeteer，会自动找到 Chrome
+
+        browser = await puppeteer.launch(launchOptions);
 
         const page = await browser.newPage();
 

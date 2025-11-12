@@ -1,189 +1,265 @@
 # 批量URL转PDF工具
 
-一个功能强大的网页应用，支持批量将URL转换为PDF文件，特别优化了微信公众号文章的转换效果。
+一个支持批量将网页（包括微信公众号文章）转换为PDF的工具，支持本地运行和部署到Vercel。
 
 ## 功能特点
 
-- ✅ 批量URL转PDF：支持一次性输入多个URL进行批量转换
-- ✅ 智能文件命名：自动使用网页标题命名，重复文件名自动添加数字后缀
-- ✅ 公众号支持：特别优化微信公众号文章的PDF生成效果
-- ✅ ZIP打包下载：将所有PDF文件打包成ZIP压缩包下载
-- ✅ 邮件发送：支持将ZIP压缩包直接发送到指定邮箱
-- ✅ 实时进度：显示转换进度和每个URL的处理状态
-- ✅ 美观界面：现代化的渐变色UI设计
+- ✅ 批量URL转PDF转换
+- ✅ 支持微信公众号文章（自动处理懒加载图片）
+- ✅ ZIP打包下载
+- ✅ 邮件发送功能
+- ✅ 支持本地开发和Vercel部署
+- ✅ 无需本地安装Chrome（Vercel环境）
+- ✅ 实时进度显示
+- ✅ 智能文件命名
 
 ## 技术栈
 
-### 前端
-- HTML5 + CSS3
-- JavaScript (ES6+)
-- JSZip (ZIP文件生成)
+- **后端**: Node.js + Express
+- **PDF生成**: Puppeteer (本地) / Puppeteer-core + @sparticuz/chromium (Vercel)
+- **邮件发送**: Nodemailer
+- **前端**: 原生HTML/CSS/JavaScript
 
-### 后端
-- Node.js
-- Express (Web框架)
-- Puppeteer (无头浏览器，PDF生成)
-- Nodemailer (邮件发送)
+## 快速开始
 
-## 安装步骤
+### 1. 克隆项目
 
-### 1. 安装依赖
+```bash
+git clone https://github.com/shibin802/download.git
+cd download
+```
+
+### 2. 安装依赖
 
 ```bash
 npm install
 ```
 
-### 2. 配置邮件服务（可选）
+### 3. 配置环境变量
 
-如果需要使用邮件发送功能，请编辑 `server.js` 文件中的邮件配置：
+复制 `.env.example` 为 `.env.local` 并填写配置：
 
-```javascript
-const EMAIL_CONFIG = {
-    service: 'gmail', // 邮件服务提供商
-    auth: {
-        user: 'your-email@gmail.com', // 你的邮箱
-        pass: 'your-app-password' // 应用专用密码
-    }
-};
+```bash
+cp .env.example .env.local
 ```
 
-#### Gmail配置说明：
-1. 登录Gmail账户
-2. 进入"管理您的Google账户" > "安全性"
-3. 启用"两步验证"
-4. 生成"应用专用密码"
-5. 将生成的密码填入配置中
+编辑 `.env.local`：
 
-#### 其他邮箱服务：
-- QQ邮箱：service: 'QQ'
-- 163邮箱：service: '163'
-- Outlook：service: 'Outlook365'
+```env
+PORT=3000
 
-### 3. 启动服务器
+# 邮件配置（必填，用于邮件发送功能）
+EMAIL_SERVICE=smtp.163.com
+EMAIL_USER=your-email@163.com
+EMAIL_PASSWORD=your-authorization-code
+
+# Chrome路径（本地开发可选，有puppeteer时会自动使用）
+# CHROME_PATH=C:\Program Files\Google\Chrome\Application\chrome.exe
+```
+
+#### 获取163邮箱授权码
+
+1. 登录 [163邮箱](https://mail.163.com)
+2. 设置 → POP3/SMTP/IMAP
+3. 开启 SMTP 服务
+4. 获取授权码（不是登录密码！）
+
+### 4. 本地运行
 
 ```bash
 npm start
 ```
 
-或使用开发模式（自动重启）：
+访问 http://localhost:3000
+
+## 部署到Vercel
+
+### 方式一：通过Vercel CLI部署（推荐）
+
+1. **安装Vercel CLI**
 
 ```bash
-npm run dev
+npm install -g vercel
 ```
 
-### 4. 访问应用
-
-在浏览器中打开：`http://localhost:3000`
-
-## 使用方法
-
-### 基本使用
-
-1. **输入URL**：在文本框中输入要转换的URL，每行一个
-   ```
-   https://example.com/article1
-   https://mp.weixin.qq.com/s/xxxxx
-   https://example.com/article2
-   ```
-
-2. **生成PDF**：点击"生成PDF"按钮，等待转换完成
-
-3. **下载ZIP**：转换完成后，点击"下载ZIP"按钮下载所有PDF文件
-
-### 邮件发送
-
-1. 在"接收邮箱"输入框中输入邮箱地址
-2. 生成PDF后，点击"发送邮件"按钮
-3. 系统会将ZIP压缩包发送到指定邮箱
-
-## 支持的URL类型
-
-- ✅ 普通网页
-- ✅ 微信公众号文章 (mp.weixin.qq.com)
-- ✅ 博客文章
-- ✅ 新闻网站
-- ✅ 技术文档
-
-## 文件命名规则
-
-- 使用网页标题作为文件名
-- 自动清理非法字符（`< > : " / \ | ? *`）
-- 文件名长度限制为100字符
-- 重复文件名自动添加数字后缀（例如：`文章_1.pdf`, `文章_2.pdf`）
-
-## 注意事项
-
-1. **网络要求**：需要稳定的网络连接访问目标URL
-2. **超时设置**：每个URL的处理超时时间为60秒
-3. **内存占用**：批量处理大量URL时可能占用较多内存
-4. **公众号限制**：某些公众号文章可能有访问限制
-5. **邮件大小**：邮件附件大小受邮箱服务商限制（通常25MB）
-
-## 故障排除
-
-### Puppeteer安装失败
-
-如果Puppeteer安装失败，可以尝试：
+2. **登录Vercel**
 
 ```bash
-# 设置淘宝镜像
-npm config set puppeteer_download_host=https://npm.taobao.org/mirrors
-npm install puppeteer
+vercel login
 ```
 
-或使用环境变量：
+3. **部署项目**
 
 ```bash
-# Windows
-set PUPPETEER_DOWNLOAD_HOST=https://npm.taobao.org/mirrors
-npm install puppeteer
-
-# Linux/Mac
-PUPPETEER_DOWNLOAD_HOST=https://npm.taobao.org/mirrors npm install puppeteer
+vercel
 ```
 
-### 公众号文章无法访问
+第一次部署时会询问一些配置问题，按提示操作即可。
 
-某些公众号文章可能需要登录或有其他限制，建议：
-- 在浏览器中先确认URL可以正常访问
-- 尝试使用文章的原始链接
+4. **配置环境变量**
 
-### 邮件发送失败
+在Vercel Dashboard中设置环境变量：
 
-检查以下几点：
-- 邮箱配置是否正确
-- 是否启用了应用专用密码
-- 网络是否允许SMTP连接
-- 附件大小是否超过限制
+- `EMAIL_USER`: 你的邮箱地址
+- `EMAIL_PASSWORD`: 邮箱授权码
+- `EMAIL_SERVICE`: smtp.163.com
+
+或使用CLI设置：
+
+```bash
+vercel env add EMAIL_USER
+vercel env add EMAIL_PASSWORD
+vercel env add EMAIL_SERVICE
+```
+
+5. **生产环境部署**
+
+```bash
+vercel --prod
+```
+
+### 方式二：通过GitHub自动部署
+
+1. **推送代码到GitHub**
+
+```bash
+git add .
+git commit -m "Deploy to Vercel"
+git push origin master
+```
+
+2. **在Vercel中导入项目**
+
+- 访问 [Vercel Dashboard](https://vercel.com/dashboard)
+- 点击 "Import Project"
+- 选择你的GitHub仓库
+- 配置环境变量（同上）
+- 点击 "Deploy"
+
+3. **自动部署**
+
+之后每次推送到GitHub，Vercel会自动重新部署。
+
+## 环境变量说明
+
+| 变量名 | 说明 | 必填 | 示例 |
+|--------|------|------|------|
+| `PORT` | 服务器端口 | 否 | 3000 |
+| `EMAIL_SERVICE` | SMTP服务器 | 是 | smtp.163.com |
+| `EMAIL_USER` | 邮箱账号 | 是 | your@163.com |
+| `EMAIL_PASSWORD` | 邮箱授权码 | 是 | authorization-code |
+| `CHROME_PATH` | Chrome路径（本地） | 否 | C:\Program Files\Google Chrome\Application\chrome.exe |
+
+## 使用说明
+
+1. **输入URL列表**
+   - 每行输入一个URL
+   - 支持普通网页和微信公众号文章链接
+
+2. **可选：输入接收邮箱**
+   - 如果需要邮件发送，填写接收邮箱地址
+
+3. **生成PDF**
+   - 点击"生成PDF"按钮
+   - 等待处理完成（会显示进度）
+
+4. **下载或发送**
+   - 点击"下载ZIP"下载所有PDF
+   - 或点击"发送邮件"将ZIP发送到邮箱
 
 ## 项目结构
 
 ```
 .
+├── server.js           # 后端服务器（支持本地和Vercel）
 ├── index.html          # 前端页面
-├── app.js             # 前端JavaScript逻辑
-├── server.js          # 后端服务器
-├── package.json       # 项目配置
-└── README.md          # 说明文档
+├── app.js             # 前端逻辑
+├── package.json       # 依赖配置
+├── vercel.json        # Vercel部署配置
+├── .env.example       # 环境变量模板
+├── .env.local         # 本地环境变量（不提交）
+├── .gitignore         # Git忽略配置
+└── README.md          # 项目文档
 ```
 
-## 开发计划
+## 常见问题
 
-- [ ] 支持自定义PDF页面大小
-- [ ] 支持PDF水印
-- [ ] 支持批量导入URL文件
-- [ ] 支持更多邮件服务商
-- [ ] 添加用户认证
-- [ ] 支持云存储集成
+### Q: 本地运行报错 "Cannot find module 'puppeteer'"
 
-## 许可证
+A: 运行 `npm install` 安装依赖，或设置 `CHROME_PATH` 环境变量指向Chrome安装路径。
 
-MIT License
+### Q: Vercel部署后PDF生成失败
+
+A: 检查以下几点：
+1. 确保使用的是 `puppeteer-core` 而不是 `puppeteer`
+2. 确认 `@sparticuz/chromium` 已正确安装
+3. 查看Vercel日志排查具体错误
+
+### Q: 邮件发送失败 "Missing credentials"
+
+A:
+1. 确认已在Vercel中配置环境变量
+2. 确认使用的是邮箱授权码，不是登录密码
+3. 确认SMTP服务器地址正确
+
+### Q: 微信公众号文章图片不显示
+
+A:
+1. 程序已自动处理懒加载图片
+2. 部分图片可能有防盗链，建议在浏览器中先打开文章
+3. 可能需要等待更长时间让图片加载完成
+
+### Q: PDF文件太大
+
+A:
+1. Vercel有50MB的限制
+2. 建议一次处理的URL不要太多（5-10个为宜）
+3. 可以多次转换，分批下载
+
+## 技术说明
+
+### 本地环境 vs Vercel环境
+
+- **本地**: 使用 `puppeteer` + 本地Chrome
+- **Vercel**: 使用 `puppeteer-core` + `@sparticuz/chromium`（无需本地Chrome）
+
+代码会自动检测 `process.env.VERCEL` 环境变量来选择合适的配置。
+
+### PDF生成流程
+
+1. 使用Puppeteer打开目标URL
+2. 等待页面加载完成（networkidle2）
+3. 针对微信公众号文章进行特殊处理（懒加载图片）
+4. 模拟滚动触发所有懒加载内容
+5. 生成PDF并返回base64编码
+
+## 开发说明
+
+### 本地开发
+
+```bash
+# 安装依赖
+npm install
+
+# 启动开发服务器
+npm run dev  # 使用nodemon自动重启
+
+# 或直接启动
+npm start
+```
+
+### 调试
+
+在 `server.js` 中已添加详细的console.log输出，可以通过日志追踪PDF生成过程。
+
+## License
+
+MIT
+
+## 作者
+
+shibin802
 
 ## 贡献
 
 欢迎提交Issue和Pull Request！
-
-## 联系方式
-
-如有问题或建议，请提交Issue。
