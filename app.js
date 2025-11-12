@@ -110,7 +110,7 @@ async function generatePDFs() {
             addStatus(`正在处理: ${url}`, 'processing', statusId);
 
             // 调用后端API生成PDF
-            const response = await fetch('/api/server/generate-pdf', {
+            const response = await fetch('/generate-pdf', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -240,7 +240,7 @@ async function sendEmail() {
                 const base64data = reader.result.split(',')[1];
 
                 // 调用后端API发送邮件
-                const response = await fetch('/api/server/send-email', {
+                const response = await fetch('/send-email', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

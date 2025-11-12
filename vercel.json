@@ -1,7 +1,11 @@
 {
   "rewrites": [
     {
-      "source": "/api/(.*)",
+      "source": "/generate-pdf",
+      "destination": "/api/server"
+    },
+    {
+      "source": "/send-email",
       "destination": "/api/server"
     }
   ]
