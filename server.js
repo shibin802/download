@@ -381,8 +381,13 @@ app.post('/send-email', async (req, res) => {
     }
 });
 
-// 启动服务器
-app.listen(PORT, () => {
-    console.log(`服务器运行在 http://localhost:${PORT}`);
-    console.log('请在浏览器中打开 http://localhost:3000');
-});
+// 启动服务器（仅在非 Vercel 环境）
+if (!process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log(`服务器运行在 http://localhost:${PORT}`);
+        console.log('请在浏览器中打开 http://localhost:3000');
+    });
+}
+
+// 导出 app 供 Vercel 使用
+module.exports = app;
