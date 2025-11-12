@@ -30,17 +30,23 @@ const path = require('path');
 // 根据环境选择合适的 puppeteer
 let puppeteer;
 let chromium;
+let usePuppeteerCore = false;
 
 if (process.env.VERCEL) {
     // Vercel 环境使用 puppeteer-core 和 @sparticuz/chromium
     puppeteer = require('puppeteer-core');
     chromium = require('@sparticuz/chromium');
+    usePuppeteerCore = true;
 } else {
-    // 本地环境使用常规 puppeteer
+    // 本地环境优先使用常规 puppeteer
     try {
         puppeteer = require('puppeteer');
+        console.log('使用 puppeteer (自带 Chrome)');
     } catch (e) {
+        // 如果没有 puppeteer，使用 puppeteer-core
         puppeteer = require('puppeteer-core');
+        usePuppeteerCore = true;
+        console.log('使用 puppeteer-core (需要指定 Chrome 路径)');
     }
 }
 
@@ -94,9 +100,33 @@ app.post('/generate-pdf', async (req, res) => {
             // Vercel 环境使用 chromium
             launchOptions.executablePath = await chromium.executablePath();
             launchOptions.args = chromium.args;
-        } else if (process.env.CHROME_PATH) {
-            // 使用环境变量指定的 Chrome 路径
-            launchOptions.executablePath = process.env.CHROME_PATH;
+        } else if (usePuppeteerCore) {
+            // 本地使用 puppeteer-core 时，必须指定 Chrome 路径
+            if (process.env.CHROME_PATH) {
+                launchOptions.executablePath = process.env.CHROME_PATH;
+            } else {
+                // 尝试常见的 Chrome 安装路径
+                const possiblePaths = [
+                    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+                    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+                    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+                    '/usr/bin/google-chrome',
+                    '/usr/bin/chromium-browser'
+                ];
+
+                const fs = require('fs');
+                for (const chromePath of possiblePaths) {
+                    if (fs.existsSync(chromePath)) {
+                        launchOptions.executablePath = chromePath;
+                        console.log(`找到 Chrome: ${chromePath}`);
+                        break;
+                    }
+                }
+
+                if (!launchOptions.executablePath) {
+                    throw new Error('未找到 Chrome 浏览器。请设置 CHROME_PATH 环境变量或安装 puppeteer 包');
+                }
+            }
         }
         // 本地环境如果安装了 puppeteer，会自动找到 Chrome
 
