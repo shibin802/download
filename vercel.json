@@ -7,15 +7,47 @@
       "config": {
         "maxLambdaSize": "50mb"
       }
+    },
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "app.js",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
     {
+      "src": "/",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/app.js",
+      "dest": "/app.js"
+    },
+    {
+      "src": "/generate-pdf",
+      "dest": "/server.js"
+    },
+    {
+      "src": "/send-email",
+      "dest": "/server.js"
+    },
+    {
       "src": "/(.*)",
-      "dest": "server.js"
+      "dest": "/server.js"
     }
   ],
-  "env": {
-    "PORT": "3000"
-  }
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://static.cloudflareinsights.com https://vercel.live; style-src 'self' 'unsafe-inline' https://at.alicdn.com; font-src 'self' data: https://at.alicdn.com; img-src 'self' data: https:; connect-src 'self' https:"
+        }
+      ]
+    }
+  ]
 }
